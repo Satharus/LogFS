@@ -10,46 +10,52 @@
 
 int main(int argc, char *argv[])
 {
+
 	int returnValue;
-	struct fuse_args args = FUSE_ARGS_INIT(argc, argv);
 
-	/* Set defaults -- we have to use strdup so that
-	   fuse_opt_parse can free the defaults if other
-	   values are specified */
+	//Make  a fuse_args instance using the passed arguments
+	struct fuse_args fuseArguments = FUSE_ARGS_INIT(argc, argv);
 
-
-	/* Parse options */
-	if (fuse_opt_parse(&args, &options, option_spec, NULL) == -1)
+	//Parse command line options
+	if (fuse_opt_parse(&fuseArguments, &fuseOptions, option_spec, NULL) == -1)
 		return 1;
 
+	//Sets the file mode creation mask, seen "man 2 umask" for more info
 	umask(0);
 
-	/* When --help is specified, first print our own file-system
+
+	/*
+		When --help is specified, first print LogFS'
 	   specific help text, then signal fuse_main to show
 	   additional help (by adding `--help` to the options again)
-	   without usage: line (by setting argv[0] to the empty
-	   string) */
-	if (options.show_help) {
-		show_help(argv[0]);
-		assert(fuse_opt_add_arg(&args, "--help") == 0);
-		args.argv[0][0] = '\0';
-		returnValue = fuse_main(args.argc, args.argv, &logfs_oper, NULL);
-		fuse_opt_free_args(&args);
+	*/
+	if (fuseOptions.showHelp || argc < 2) {
+		showHelp(argv[0]);
+		if (argc >= 2)
+		{
+			assert(fuse_opt_add_arg(&fuseArguments, "--help") == 0);
+			fuseArguments.argv[0][0] = '\0';
+			returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
+			fuse_opt_free_args(&fuseArguments);
+		}
 		return returnValue;
 	}
 
-	if (options.show_version)
+	if (fuseOptions.show_version)
 	{
 		char *programName;
 		programName = &argv[0][2]; //Removing the "./" at the start of argv[0]
 
 		show_version(programName);
-		assert(fuse_opt_add_arg(&args, "--version") == 0);
-		args.argv[0][0] = '\0';
-		returnValue = fuse_main(args.argc, args.argv, &logfs_oper, NULL);
-		fuse_opt_free_args(&args);
+		assert(fuse_opt_add_arg(&fuseArguments, "--version") == 0);
+		fuseArguments.argv[0][0] = '\0';
+		returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
+		fuse_opt_free_args(&fuseArguments);
 		return returnValue;
 	}
+
+	//Print the status of the logging to the user.
+	printf("Logging is %s.", fuseOptions.disableLogging ? "disabled" : "enabled");
 
 	mountpoint.path = fuse_mnt_resolve_path(strdup(argv[0]), argv[argc - 1]);
 	mountpoint.dir = malloc(sizeof(struct logfs_dirPointer));
@@ -69,8 +75,8 @@ int main(int argc, char *argv[])
 	mountpoint.dir->offset = 0;
 	mountpoint.dir->directoryEntry = NULL;
 
-	returnValue = fuse_main(args.argc, args.argv, &logfs_oper, NULL);
-	fuse_opt_free_args(&args);
+	returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
+	fuse_opt_free_args(&fuseArguments);
 
 	closedir(mountpoint.dir->directoryPointer);
 	free(mountpoint.path);

@@ -59,7 +59,7 @@ static int logfs_statfs(const char *path, struct statvfs *stbuf);
 static int logfs_flush(const char *path, struct fuse_file_info *fi);
 
 
-static void show_help(const char *progname);
+static void showHelp(const char *progname);
 
 static void show_version(const char *progname);
 

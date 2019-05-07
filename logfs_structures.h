@@ -16,10 +16,10 @@ struct logfs_dirPointer {
 
 //Struct that holds the command line options
 static struct options {
-	 int enable_logging; //Enables/disables logging
-	 int show_help;
+	 int disableLogging; //Disables logging
+	 int showHelp;
 	 int show_version;
-} options;
+} fuseOptions;
 
 //Struct that holds the mounting point for the filesystem
 static struct mountpoint {
@@ -43,9 +43,9 @@ static struct mountpoint {
 
 //Array of fuse_opt structs for holding the command line options
 static const struct fuse_opt option_spec[] = {
-		  OPTION("--enable-logging=%d", enable_logging),
-		  OPTION("-h", show_help),
-		  OPTION("--help", show_help),
+		  OPTION("--disable-logging", disableLogging),
+		  OPTION("-h", showHelp),
+		  OPTION("--help", showHelp),
 		  OPTION("-V", show_version),
 		  OPTION("--version", show_version),
 		  FUSE_OPT_END

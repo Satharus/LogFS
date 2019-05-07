@@ -379,12 +379,12 @@ static int logfs_flush(const char *path, struct fuse_file_info *fi)
 }
 
 
-static void show_help(const char *progname)
+static void showHelp(const char *progname)
 {
 	printf("usage: %s [options] <mountpoint>\n\n", progname);
 	printf("File-system specific options:\n"
-			 "     --enable-logging=<b>   Enables logging, b = 1 or 0\n"
-			 "                              (Enabled by default)\n"
+			 "  --disable-logging      Disables logging\n"
+			 "          (Logging is enabled by default)\n"
 			 "\n");
 }
 
