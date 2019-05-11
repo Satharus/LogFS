@@ -28,6 +28,11 @@ static struct mountpoint {
 	 char *path;
 } mountpoint;
 
+//Struct that holds the operation info
+static struct sessionInfo {
+	 char *logFilePath;
+} sessionInfo;
+
 #define OPTION(t, p) { t, offsetof(struct options, p), 1 }
 /*
  * This basically expands OPTION(t, p) to:

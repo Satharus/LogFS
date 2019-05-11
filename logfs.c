@@ -7,7 +7,6 @@
 
 #include "logfs_operations.h"
 
-
 int main(int argc, char *argv[])
 {
 
@@ -27,17 +26,24 @@ int main(int argc, char *argv[])
 	/*
 		When --help is specified, first print LogFS'
 	   specific help text, then signal fuse_main to show
-	   additional help (by adding `--help` to the options again)
+	   additional help (by adding `--help` to the options again
+
+	   if the program is run without any arguments then print
+	   LogFS specific help text only.
 	*/
 	if (fuseOptions.showHelp || argc < 2) {
-		showHelp(argv[0]);
-		if (argc >= 2)
+		showHelp(argv[0]); //Show LogFS specific help
+		if (argc >= 2)    //If --help or -h is specified
 		{
-			assert(fuse_opt_add_arg(&fuseArguments, "--help") == 0);
+			assert(fuse_opt_add_arg(&fuseArguments, "--help") == 0); //Get FUSE help
 			fuseArguments.argv[0][0] = '\0';
+
+			//Give control to fuse_main
 			returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
-			fuse_opt_free_args(&fuseArguments);
+			fuse_opt_free_args(&fuseArguments); //Free the argument list
+
 		}
+
 		return returnValue;
 	}
 
@@ -46,39 +52,61 @@ int main(int argc, char *argv[])
 		char *programName;
 		programName = &argv[0][2]; //Removing the "./" at the start of argv[0]
 
-		show_version(programName);
-		assert(fuse_opt_add_arg(&fuseArguments, "--version") == 0);
+		show_version(programName); //Show LogFS specific version
+
+		assert(fuse_opt_add_arg(&fuseArguments, "--version") == 0); //Get FUSE version
 		fuseArguments.argv[0][0] = '\0';
+
+		//Give control to fuse_main
 		returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
-		fuse_opt_free_args(&fuseArguments);
+		fuse_opt_free_args(&fuseArguments); //Free the argument list
 		return returnValue;
 	}
 
-	//Print the status of the logging to the user.
-	printf("Logging is %s.", fuseOptions.disableLogging ? "disabled" : "enabled");
-
+	//Resolve the mounting point from the list of arguments
 	mountpoint.path = fuse_mnt_resolve_path(strdup(argv[0]), argv[argc - 1]);
+
+	//Allocate the directory pointer
 	mountpoint.dir = malloc(sizeof(struct logfs_dirPointer));
 	if (mountpoint.dir == NULL)
-		return -ENOMEM;
+		return -ENOMEM; //No memory
 
+	//Get a stream for the mounting point
 	mountpoint.dir->directoryPointer = opendir(mountpoint.path);
-	if (mountpoint.dir->directoryPointer == NULL) {
+	if (mountpoint.dir->directoryPointer == NULL) { //If the stream didn't initialise
 		fprintf(stderr, "error: %s\n", strerror(errno));
 		return -1;
 	}
 
+	//If the DIR stream's file descriptor returned an error
 	if ((mountpoint.fileDescriptor = dirfd(mountpoint.dir->directoryPointer)) == -1) {
 		fprintf(stderr, "error: %s\n", strerror(errno));
 		return -1;
 	}
+
 	mountpoint.dir->offset = 0;
 	mountpoint.dir->directoryEntry = NULL;
 
-	returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
-	fuse_opt_free_args(&fuseArguments);
+	//Set the log file
+	char *logFile;
+	logFile = malloc(sizeof(char) * 1024);
+	strcat(logFile, mountpoint.path);
+	strcat(logFile, "/Log.txt");
+	sessionInfo.logFilePath = logFile;
 
-	closedir(mountpoint.dir->directoryPointer);
-	free(mountpoint.path);
+	//Log that the filesystem has been mounted
+	logfs_log_to_file(1, "", sessionInfo.logFilePath);
+
+	//Give control to fuse_main
+	returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
+	fuse_opt_free_args(&fuseArguments); //free arguments
+
+	//Log that the filesystem has been unmounted
+	logfs_log_to_file(5, "", sessionInfo.logFilePath);
+
+	closedir(mountpoint.dir->directoryPointer); //close the directory
+	free(mountpoint.path); //Free the path variable
+	free(logFile);
+	free(sessionInfo.logFilePath);
 	return returnValue;
 }

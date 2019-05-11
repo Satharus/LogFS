@@ -1,5 +1,6 @@
 
 #include "logfs_functions.h"
+#include "shellfunctions.c"
 
 static void *logfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
 {
@@ -204,6 +205,7 @@ static int logfs_opendir(const char *path,struct fuse_file_info *fi)
 	d->offset = 0;
 	d->directoryEntry = NULL;
 	fi->fh = (unsigned long) d;
+	logfs_log_to_file(6, "", sessionInfo.logFilePath);
 	return 0;
 
 }
@@ -229,10 +231,12 @@ static int logfs_mkdir(const char *path, mode_t mode)
 	strcpy(relative_path, ".");
 	strcat(relative_path, path);
 
+
 	returnValue = mkdirat(mountpoint.fileDescriptor, relative_path, mode);
 	if (returnValue == -1)
+	{
 		return -errno;
-
+	}
 	return 0;
 }
 
@@ -264,7 +268,7 @@ static int logfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	if(returnValue==-1)
 		returnValue=-errno;
-
+	system("echo zebi >> ~/Desktop/file.txt");
 	return returnValue;
 }
 
@@ -335,6 +339,7 @@ static int logfs_write(const char *path, const char *buf, size_t size,
 
 	return returnValue;
 }
+
 static int logfs_write_buf(const char *path, struct fuse_bufvec *buf,
 									off_t offset, struct fuse_file_info *fi)
 {
@@ -460,4 +465,34 @@ char *fuse_mnt_resolve_path(const char *progname, const char *orig)
 	if (dst == NULL)
 		fprintf(stderr, "%s: failed to allocate memory\n", progname);
 	return dst;
+}
+
+void logfs_log_to_file(int operationID, char operand[], char filePath[])
+{
+	/* operations
+	 * 1) Mount
+	 * 2) List
+	 * 3) Create(directory)
+	 * 4) Create(file)
+	 * 5) Unmount
+	 * 6) Change working directory
+	 * 7) Remove
+	 */
+
+	char *userName = getShellCommandOutput("whoami | tr -d  \"\\n\"");
+	char *dateAndTime = getShellCommandOutput("date");
+	char *operation = "";
+	if		  (operationID == 1)		operation = "mounted the filesystem";
+	else if (operationID == 2)		operation = "listed the files in directory";
+	else if (operationID == 3)		operation = "created a new directory: ";
+	else if (operationID == 4)		operation = "created a new file: ";
+	else if (operationID == 5)		operation = "unmounted the filesystem";
+	else if (operationID == 6)		operation = "changed the working directory";
+	else if (operationID == 7)		operation = "removed file from the filesystem: ";
+
+	FILE *logFile = fopen(filePath, "a");
+	fprintf(logFile, "User %s %s%s \t\t %s", userName, operation, operand, dateAndTime);
+	fclose(logFile);
+
+	removeLogDuplicates(filePath);
 }

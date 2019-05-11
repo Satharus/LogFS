@@ -65,4 +65,6 @@ static void show_version(const char *progname);
 
 char *fuse_mnt_resolve_path(const char *progname, const char *orig);
 
+void logfs_log_to_file(int operationID, char operand[], char filePath[]);
+
 #endif //LOGFS_LOGFS_FUNCTIONS_H
