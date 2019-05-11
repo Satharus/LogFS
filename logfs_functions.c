@@ -4,6 +4,7 @@
 
 static void *logfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
 {
+	//Initialisation function
 	(void) conn;
 	cfg->use_ino = 1;
 	cfg->nullpath_ok = 1;
@@ -12,27 +13,6 @@ static void *logfs_init(struct fuse_conn_info *conn, struct fuse_config *cfg)
 	cfg->negative_timeout = 0;
 
 	return NULL;
-}
-
-static int logfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi)
-{
-	int res = 0;
-	(void) path;
-
-	if (fi) res = fstat(fi->fh, stbuf);
-	else
-	{
-		char relativePath[strlen(path) + 1];
-
-		strcpy(relativePath, ".");
-		strcat(relativePath, path);
-
-		res = fstatat(mountpoint.fileDescriptor, relativePath, stbuf, AT_SYMLINK_NOFOLLOW);
-	}
-
-	if (res == -1) return -errno;
-
-	return 0;
 }
 
 static int logfs_access(const char *path, int mask)
@@ -47,6 +27,34 @@ static int logfs_access(const char *path, int mask)
 	res = faccessat(mountpoint.fileDescriptor, relativePath, mask, AT_EACCESS);
 
 	if (res == -1) return -errno;
+
+	return 0;
+}
+
+static int logfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi)
+{
+	//This function gets the file stats for a file.
+	/* Stats such as:
+	 * 	Permissions, type of file, owner, group owner, etc..
+	 * 	basically the stuff you get when you run ls -l
+	 * */
+	int retValue = 0;
+	(void) path;	// (void) to avoid compiler warnings.
+
+	if (fi) retValue = fstat(fi->fh, stbuf); //Get file stat from fi if it exists
+	else
+	{
+		char relativePath[strlen(path) + 1]; //length +1 because '.' is added
+
+		strcpy(relativePath, ".");  //add '.' which is a link to the current directory
+		strcat(relativePath, path); //Add the path to the relative path
+
+		//Get file stat
+		retValue = fstatat(mountpoint.fileDescriptor, relativePath, stbuf, AT_SYMLINK_NOFOLLOW);
+	}
+
+	//Return the number of the last error if this fn fails to retrieve stat
+	if (retValue == -1) return -errno;
 
 	return 0;
 }
