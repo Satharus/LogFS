@@ -11,6 +11,7 @@ LogFS is a simple userspace filesystem that logs everything to a file in the wor
 ### To be added
 - Support for links.
 - Support for copying and moving(renaming).
+- Changing permissions.
   
   
 ## Compilation
