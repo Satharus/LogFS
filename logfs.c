@@ -95,14 +95,14 @@ int main(int argc, char *argv[])
 	sessionInfo.logFilePath = logFile;
 
 	//Log that the filesystem has been mounted
-	logfs_log_to_file(1, "", sessionInfo.logFilePath);
+	if (!fuseOptions.disableLogging) logfs_log_to_file(1, "", sessionInfo.logFilePath);
 
 	//Give control to fuse_main
 	returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
 	fuse_opt_free_args(&fuseArguments); //free arguments
 
 	//Log that the filesystem has been unmounted
-	logfs_log_to_file(5, "", sessionInfo.logFilePath);
+	if (!fuseOptions.disableLogging) logfs_log_to_file(5, "", sessionInfo.logFilePath);
 
 	closedir(mountpoint.dir->directoryPointer); //close the directory
 	free(mountpoint.path); //Free the path variable
