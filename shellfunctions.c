@@ -16,7 +16,7 @@ char* getShellCommandOutput(char command[])
     
     char *output;
     output = (char *) malloc(sizeof(char) * 1024);
-    memset(output, (char)NULL, strlen(output)); //Reset the string
+    memset(output, '\0', strlen(output)); //Reset the string
 
     while (fgets(buff, sizeof(buff)-1, file) != NULL)
         strcat(output, buff); //Keep getting from the bugger while it isn't null
