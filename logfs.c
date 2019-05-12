@@ -63,6 +63,20 @@ int main(int argc, char *argv[])
 		return returnValue;
 	}
 
+	if (argc >= 2)
+	{
+		if (argv[1][0] == '-' && strcmp(argv[1], "--disable-logging") != 0)
+		{
+			printf("Invalid option, use --help for more info\n");
+			return 0;
+		}
+		else if (argc == 2 && strcmp(argv[1], "--disable-logging") == 0)
+		{
+			printf("No mounting point specified, use --help for more info\n");
+			return 0;
+		}
+	}
+
 	//Set the mount point to the last argument
 	mountpoint.path = argv[argc - 1];
 

@@ -335,9 +335,7 @@ static void showHelp(const char *progname)
 
 static void show_version(const char *progname)
 {
-	printf("%s Built with fuse v%d)\n",
-			 progname,
-			 FUSE_MAJOR_VERSION);
+	printf("%s Built with fuse v%d\n", progname, FUSE_MAJOR_VERSION);
 }
 
 void logfs_log_to_file(int operationID, char operand[], char filePath[])
