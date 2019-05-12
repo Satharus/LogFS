@@ -40,8 +40,6 @@ static int logfs_create(const char *path, mode_t mode, struct fuse_file_info *fi
 static int logfs_write_buf(const char *path, struct fuse_bufvec *buf,
 		  							off_t offset, struct fuse_file_info *fi);
 
-char *fuse_mnt_resolve_path(const char *progname, const char *orig);
-
 static void showHelp(const char *progname);
 
 static void show_version(const char *progname);

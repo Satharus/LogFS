@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
 		return returnValue;
 	}
 
-	//Resolve the mounting point from the list of arguments
-	mountpoint.path = fuse_mnt_resolve_path(strdup(argv[0]), argv[argc - 1]);
+	//Set the mount point to the last argument
+	mountpoint.path = argv[argc - 1];
 
 	//Allocate the directory pointer
 	mountpoint.dir = malloc(sizeof(struct logfs_dirPointer));

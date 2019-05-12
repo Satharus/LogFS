@@ -242,7 +242,6 @@ static int logfs_mkdir(const char *path, mode_t mode)
 	char relative_path[ strlen(path) + 1];
 	strcpy(relative_path, ".");
 	strcat(relative_path, path);
-
 	retValue = mkdirat(mountpoint.fileDescriptor, relative_path, mode);
 
 	if (retValue == -1) return -errno;
@@ -323,80 +322,6 @@ static int logfs_write_buf(const char *path, struct fuse_bufvec *buf,
 	destination.buf[0].pos = offset;
 
 	return fuse_buf_copy(&destination, buf, FUSE_BUF_SPLICE_NONBLOCK);
-}
-
-char *fuse_mnt_resolve_path(const char *progname, const char *orig)
-{
-	char buf[PATH_MAX]; //PATH_MAX = 4096
-	char *copy;
-	char *dst;
-	char *end;
-	char *lastcomp;
-	const char *toresolv;
-
-	if (!orig[0]) {
-		fprintf(stderr, "%s: invalid mountpoint '%s'\n", progname,
-				  orig);
-		return NULL;
-	}
-
-	copy = strdup(orig);
-	if (copy == NULL) {
-		fprintf(stderr, "%s: failed to allocate memory\n", progname);
-		return NULL;
-	}
-
-	toresolv = copy;
-	lastcomp = NULL;
-	for (end = copy + strlen(copy) - 1; end > copy && *end == '/'; end --);
-	if (end[0] != '/')
-	{
-		char *tmp;
-		end[1] = '\0';
-		tmp = strrchr(copy, '/');
-
-		if (tmp == NULL)
-		{
-			lastcomp = copy;
-			toresolv = ".";
-		}
-		else
-		{
-			lastcomp = tmp + 1;
-			if (tmp == copy) toresolv = "/";
-		}
-		if (strcmp(lastcomp, ".") == 0 || strcmp(lastcomp, "..") == 0)
-		{
-			lastcomp = NULL;
-			toresolv = copy;
-		}
-		else if (tmp) tmp[0] = '\0';
-	}
-	if (realpath(toresolv, buf) == NULL)
-	{
-		fprintf(stderr, "%s: bad mount point %s: %s\n", progname,
-				  orig, strerror(errno));
-		free(copy);
-		return NULL;
-	}
-	if (lastcomp == NULL)
-		dst = strdup(buf);
-	else
-	{
-		dst = (char *) malloc(strlen(buf) + 1 + strlen(lastcomp) + 1);
-		if (dst)
-		{
-			unsigned buflen = strlen(buf);
-			if (buflen && buf[buflen-1] == '/')
-				sprintf(dst, "%s%s", buf, lastcomp);
-			else
-				sprintf(dst, "%s/%s", buf, lastcomp);
-		}
-	}
-
-	free(copy);
-	if (dst == NULL) fprintf(stderr, "%s: failed to allocate memory\n", progname);
-	return dst;
 }
 
 static void showHelp(const char *progname)
