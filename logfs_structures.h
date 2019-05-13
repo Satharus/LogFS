@@ -54,8 +54,8 @@ static const struct fuse_opt option_spec[] = {
 		  OPTION("--version", show_version),
 		  OPTION("-l", showLogs),
 		  OPTION("--show-logs", showLogs),
-		  OPTION("-r", removeLogs),
-		  OPTION("--reset-logs", removeLogs),
+		  OPTION("-c", removeLogs),
+		  OPTION("--clear-logs", removeLogs),
 		  FUSE_OPT_END
 };
 
