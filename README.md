@@ -17,7 +17,9 @@ LogFS is a simple userspace filesystem that logs everything to a file. Made usin
 - Support for copying and moving(renaming).
 - Changing permissions.
   
-  
+## Chart
+![LogFSDiagram](https://github.com/Satharus/LogFS/blob/master/LogFSDiagram.png)
+
 ## Compilation
 
 - Install libfuse3
@@ -36,10 +38,13 @@ LogFS is a simple userspace filesystem that logs everything to a file. Made usin
 - Run LogFS
 ```./LogFS New```
 
+- Change the working directory to the mount directory
+```cd New```
+
 - Test the filesystem like you'd use your usual filesystem from the CLI.
 
 - Check the logs
-```./LogFS --show-logs```
+```../LogFS --show-logs```
 
 - Clear the logs
-```./LogFS --reset-logs```
+```../LogFS --clear-logs```
