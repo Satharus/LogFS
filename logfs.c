@@ -23,6 +23,31 @@ int main(int argc, char *argv[])
 	umask(0);
 
 
+	if (fuseOptions.showLogs)
+	{
+		FILE *logFile;
+		logFile = fopen(LOGFILEPATH, "r");
+		if (logFile)
+		{
+			char c =getc(logFile);
+			while (c != EOF)
+			{
+				putchar(c);
+				c = getc(logFile);
+			}
+
+			fclose(logFile);
+		}
+		return 0;
+	}
+
+	if (fuseOptions.removeLogs)
+	{
+		if (remove(LOGFILEPATH) == 0) printf("Deleted logs successfully.\n");
+		else printf("Unable to clear logs, check the permissions.\n");
+		return 0;
+	}
+
 	/*
 		When --help is specified, first print LogFS'
 	   specific help text, then signal fuse_main to show
@@ -101,26 +126,18 @@ int main(int argc, char *argv[])
 	mountpoint.dir->offset = 0;
 	mountpoint.dir->directoryEntry = NULL;
 
-	//Set the log file
-	char *logFile;
-	logFile = malloc(sizeof(char) * 1024);
-	strcat(logFile, mountpoint.path);
-	strcat(logFile, "/Log.txt");
-	sessionInfo.logFilePath = logFile;
 
 	//Log that the filesystem has been mounted
-	if (!fuseOptions.disableLogging) logfs_log_to_file(1, "", sessionInfo.logFilePath);
+	if (!fuseOptions.disableLogging) logfs_log_to_file(1, "", LOGFILEPATH);
 
 	//Give control to fuse_main
 	returnValue = fuse_main(fuseArguments.argc, fuseArguments.argv, &logfs_oper, NULL);
 	fuse_opt_free_args(&fuseArguments); //free arguments
 
 	//Log that the filesystem has been unmounted
-	if (!fuseOptions.disableLogging) logfs_log_to_file(5, "", sessionInfo.logFilePath);
+	if (!fuseOptions.disableLogging) logfs_log_to_file(5, "", LOGFILEPATH);
 
 	closedir(mountpoint.dir->directoryPointer); //close the directory
 	free(mountpoint.path); //Free the path variable
-	free(logFile);
-	free(sessionInfo.logFilePath);
 	return returnValue;
 }

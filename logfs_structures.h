@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <dirent.h>
 
+#define LOGFILEPATH "/tmp/LogFS_Log.txt"
 
 struct logfs_dirPointer {
 	 DIR *directoryPointer;
@@ -19,6 +20,8 @@ static struct options {
 	 int disableLogging; //Disables logging
 	 int showHelp;
 	 int show_version;
+	 int showLogs;
+	 int removeLogs;
 } fuseOptions;
 
 //Struct that holds the mounting point for the filesystem
@@ -27,11 +30,6 @@ static struct mountpoint {
 	 struct logfs_dirPointer *dir;
 	 char *path;
 } mountpoint;
-
-//Struct that holds the operation info
-static struct sessionInfo {
-	 char *logFilePath;
-} sessionInfo;
 
 #define OPTION(t, p) { t, offsetof(struct options, p), 1 }
 /*
@@ -47,12 +45,17 @@ static struct sessionInfo {
  */
 
 //Array of fuse_opt structs for holding the command line options
+//Each OPTION contains the specified option and the variable from struct options to set
 static const struct fuse_opt option_spec[] = {
 		  OPTION("--disable-logging", disableLogging),
 		  OPTION("-h", showHelp),
 		  OPTION("--help", showHelp),
 		  OPTION("-V", show_version),
 		  OPTION("--version", show_version),
+		  OPTION("-l", showLogs),
+		  OPTION("--show-logs", showLogs),
+		  OPTION("-r", removeLogs),
+		  OPTION("--reset-logs", removeLogs),
 		  FUSE_OPT_END
 };
 

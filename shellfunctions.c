@@ -27,14 +27,6 @@ char* getShellCommandOutput(char command[])
     return output;
 }
 
-void writeToFile(char filename[], char* content, char mode[])
-{
-	//This function writes the given content to the file using the specified mode
-    FILE *f = fopen(filename, mode);
-    fprintf(f, "%s", content);
-    fclose(f);
-}
-
 void removeLogDuplicates(char * filepath)
 {
 	//This function removes the duplicate lines from the Log.txt file

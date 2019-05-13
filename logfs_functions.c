@@ -64,8 +64,8 @@ static int logfs_getattr(const char *path, struct stat *stbuf, struct fuse_file_
 static int logfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset,
 		  						struct fuse_file_info *fi, enum fuse_readdir_flags flags)
 {
-
 	//This function reads the content of the passed directory.
+	if (!fuseOptions.disableLogging) if (!fuseOptions.disableLogging) logfs_log_to_file(2, "", LOGFILEPATH);
 
 	(void) path;	//Reference is retrieved from fuse_file_info fi
 	(void) flags;
@@ -124,6 +124,7 @@ static int logfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, of
 static int logfs_unlink(const char *path)
 {
 	//This function unlinks a file from the filesystem (i.e. deletes it)
+	if (!fuseOptions.disableLogging) logfs_log_to_file(7, "", LOGFILEPATH);
 	int retValue;
 
 	char relative_path[ strlen(path) + 1];
@@ -132,8 +133,8 @@ static int logfs_unlink(const char *path)
 
 
 	retValue = unlinkat(mountpoint.fileDescriptor, relative_path, 0);
-	if (retValue == -1)
-		return -errno;
+
+	if (retValue == -1) return -errno;
 
 	return 0;
 }
@@ -141,6 +142,7 @@ static int logfs_unlink(const char *path)
 static int logfs_rmdir(const char *path)
 {
 	//This function unlinks a directory from the filesystem (i.e. deletes it)
+	if (!fuseOptions.disableLogging) logfs_log_to_file(8, path + 1, LOGFILEPATH);
 	int retValue;
 
 	char relativePath[ strlen(path) + 1];
@@ -153,8 +155,7 @@ static int logfs_rmdir(const char *path)
 	*/
 	retValue = unlinkat(mountpoint.fileDescriptor, relativePath, AT_REMOVEDIR);
 
-	if (retValue == -1)
-		return -errno;
+	if (retValue == -1) return -errno;
 
 	return 0;
 }
@@ -192,6 +193,7 @@ DIR *openDirAt(int dirFileDescriptor,char const *path,int extraFlags)
 static int logfs_opendir(const char *path,struct fuse_file_info *fi)
 {
 	//This function changes the working directory to the specified path.
+	if (!fuseOptions.disableLogging) logfs_log_to_file(6, path + 1, LOGFILEPATH);
 	int returnValue;
 
 	//If the path is the root directory
@@ -238,6 +240,7 @@ static int logfs_mkdir(const char *path, mode_t mode)
 {
 	//Makes a directory at the specified path.
 
+	if (!fuseOptions.disableLogging) logfs_log_to_file(3, path+1, LOGFILEPATH);
 	int retValue;
 	char relative_path[ strlen(path) + 1];
 	strcpy(relative_path, ".");
@@ -270,6 +273,7 @@ static int logfs_read_buf(const char *path, struct fuse_bufvec **bufpointer,
 								  size_t size, off_t offset, struct fuse_file_info *fi)
 {
 	//This function reads the content of a file to a buffer vector.
+	if (!fuseOptions.disableLogging) logfs_log_to_file(10, "", LOGFILEPATH);
 
 	(void) path;
 
@@ -294,7 +298,7 @@ static int logfs_read_buf(const char *path, struct fuse_bufvec **bufpointer,
 static int logfs_create(const char *path, mode_t mode, struct fuse_file_info *fi)
 {
 	//Creates a new file, this runs when the user uses touch.
-
+	if (!fuseOptions.disableLogging) logfs_log_to_file(10, path + 1, LOGFILEPATH);
 	int fileDescriptor;
 	char relativePath[strlen(path)+1];
 	strcpy(relativePath,".");
@@ -312,6 +316,7 @@ static int logfs_write_buf(const char *path, struct fuse_bufvec *buf,
 {
 	//This function writes from a buffer vector to a file, used with editing files using
 	//nano or vim.
+	if (!fuseOptions.disableLogging) logfs_log_to_file(9, "", LOGFILEPATH);
 	(void) path;
 
 	struct fuse_bufvec destination = FUSE_BUFVEC_INIT(fuse_buf_size(buf));
@@ -326,10 +331,13 @@ static int logfs_write_buf(const char *path, struct fuse_bufvec *buf,
 
 static void showHelp(const char *progname)
 {
-	printf("usage: %s [options] <mountpoint>\n\n", progname);
+	printf("usage: %s [options] <mount point>\n\n", progname);
 	printf("File-system specific options:\n"
 			 "  --disable-logging      Disables logging\n"
 			 "          (Logging is enabled by default)\n"
+	       "  Logs are stored in /tmp/LogFS_Log.txt\n\n"
+		    "  -l --show-logs         Displays the logs\n"
+			 "  -r --reset-logs        Resets the logs\n"
 			 "\n");
 }
 
@@ -338,7 +346,7 @@ static void show_version(const char *progname)
 	printf("%s Built with fuse v%d\n", progname, FUSE_MAJOR_VERSION);
 }
 
-void logfs_log_to_file(int operationID, char operand[], char filePath[])
+void logfs_log_to_file(int operationID, const char * operand, char filePath[])
 {
 	/* operations
 	 * 1) Mount
@@ -348,21 +356,29 @@ void logfs_log_to_file(int operationID, char operand[], char filePath[])
 	 * 5) Unmount
 	 * 6) Change working directory
 	 * 7) Remove
+	 * 8) Remove(directory)
+	 * 9) Edit a file
+	 * 10) Read a file
 	 */
 
 	char *userName = getShellCommandOutput("whoami | tr -d  \"\\n\"");
 	char *dateAndTime = getShellCommandOutput("date");
 	char *operation = "";
 	if		  (operationID == 1)		operation = "mounted the filesystem";
-	else if (operationID == 2)		operation = "listed the files in directory";
+	else if (operationID == 2)		operation = "listed the files in a directory";
 	else if (operationID == 3)		operation = "created a new directory: ";
 	else if (operationID == 4)		operation = "created a new file: ";
 	else if (operationID == 5)		operation = "unmounted the filesystem";
-	else if (operationID == 6)		operation = "changed the working directory";
-	else if (operationID == 7)		operation = "removed file from the filesystem: ";
+	else if (operationID == 6)		operation = "changed the working directory: ";
+	else if (operationID == 7)		operation = "removed file from the filesystem";
+	else if (operationID == 8)		operation = "removed directory, from the filesystem: ";
+	else if (operationID == 9)		operation = "edited a file";
+	else if (operationID == 10)	operation = "read a file: ";
 
 	FILE *logFile = fopen(filePath, "a");
-	fprintf(logFile, "User %s %s%s \t\t %s", userName, operation, operand, dateAndTime);
+	if (operationID == 1 || operationID == 5)
+		fprintf(logFile, "User %s %s%s \t\t\t\t %s", userName, operation, operand, dateAndTime);
+	else fprintf(logFile, "User %s %s%s \t\t\t %s", userName, operation, operand, dateAndTime);
 	fclose(logFile);
 
 	removeLogDuplicates(filePath);
