@@ -193,6 +193,7 @@ DIR *openDirAt(int dirFileDescriptor,char const *path,int extraFlags)
 static int logfs_opendir(const char *path,struct fuse_file_info *fi)
 {
 	//This function changes the working directory to the specified path.
+	if (strcmp(path + 1, "") != 0)
 	if (!fuseOptions.disableLogging) logfs_log_to_file(6, path + 1, LOGFILEPATH);
 	int returnValue;
 
@@ -370,8 +371,8 @@ void logfs_log_to_file(int operationID, const char * operand, char filePath[])
 	else if (operationID == 4)		operation = "created a new file: ";
 	else if (operationID == 5)		operation = "unmounted the filesystem";
 	else if (operationID == 6)		operation = "changed the working directory: ";
-	else if (operationID == 7)		operation = "removed file from the filesystem";
-	else if (operationID == 8)		operation = "removed directory, from the filesystem: ";
+	else if (operationID == 7)		operation = "removed file: ";
+	else if (operationID == 8)		operation = "removed directory: ";
 	else if (operationID == 9)		operation = "edited a file";
 	else if (operationID == 10)	operation = "read a file: ";
 
