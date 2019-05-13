@@ -9,7 +9,7 @@
 
 int main(int argc, char *argv[])
 {
-
+	system("echo main >> ~/Desktop/Desktop.txt");
 	int returnValue;
 
 	//Make  a fuse_args instance using the passed arguments
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
 	if (fuseOptions.removeLogs)
 	{
-		if (remove(LOGFILEPATH) == 0) printf("Deleted logs successfully.\n");
+		if (remove(LOGFILEPATH) == 0) printf("Cleared logs successfully.\n");
 		else printf("Unable to clear logs, check the permissions.\n");
 		return 0;
 	}

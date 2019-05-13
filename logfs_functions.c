@@ -337,8 +337,8 @@ static void showHelp(const char *progname)
 			 "  --disable-logging      Disables logging\n"
 			 "          (Logging is enabled by default)\n"
 	       "  Logs are stored in /tmp/LogFS_Log.txt\n\n"
-		    "  -l --show-logs         Displays the logs\n"
-			 "  -r --reset-logs        Resets the logs\n"
+		    "  -l --show-logs         Prints the logs\n"
+			 "  -c --clear-logs        Clears the logs\n"
 			 "\n");
 }
 
