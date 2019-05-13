@@ -1,5 +1,5 @@
 # LogFS
-LogFS is a simple userspace filesystem that logs everything to a file in the working directory. Made using C and LibFUSE high level API.
+LogFS is a simple userspace filesystem that logs everything to a file. Made using C and LibFUSE high level API.
 
 
 ## Features
@@ -8,6 +8,10 @@ LogFS is a simple userspace filesystem that logs everything to a file in the wor
 - Creating files and directories (```touch``` and ```mkdir```)
 - Editing files (```nano``` or ```vim```)
 - Deleting files and directories (```rm``` and ```rmdir```)
+- Logs everything to a file, and give the user the ability to:
+  - View the logs.
+  - Reset the logs.
+  - Mount the filesystem with logging disabled.
 ### To be added
 - Support for links.
 - Support for copying and moving(renaming).
@@ -32,4 +36,10 @@ LogFS is a simple userspace filesystem that logs everything to a file in the wor
 - Run LogFS
 ```./LogFS New```
 
-- Test the filesystem like you'd browse your usual filesystem from the CLI.
+- Test the filesystem like you'd use your usual filesystem from the CLI.
+
+- Check the logs
+```./LogFS --show-logs```
+
+- Clear the logs
+```./LogFS --reset-logs```
