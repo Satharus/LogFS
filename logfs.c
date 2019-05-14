@@ -9,7 +9,6 @@
 
 int main(int argc, char *argv[])
 {
-	system("echo main >> ~/Desktop/Desktop.txt");
 	int returnValue;
 
 	//Make  a fuse_args instance using the passed arguments
