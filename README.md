@@ -48,3 +48,9 @@ LogFS is a simple userspace filesystem that logs everything to a file. Made usin
 
 - Clear the logs
 ```../LogFS --clear-logs```
+
+- Leave the mounting point
+```cd ..```
+
+- unmount the filesystem
+```fusermount3 -u New/```
