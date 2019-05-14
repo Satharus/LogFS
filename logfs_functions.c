@@ -65,7 +65,7 @@ static int logfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler, of
 		  						struct fuse_file_info *fi, enum fuse_readdir_flags flags)
 {
 	//This function reads the content of the passed directory.
-	if (!fuseOptions.disableLogging) if (!fuseOptions.disableLogging) logfs_log_to_file(2, "", LOGFILEPATH);
+	if (!fuseOptions.disableLogging) logfs_log_to_file(2, "", LOGFILEPATH);
 
 	(void) path;	//Reference is retrieved from fuse_file_info fi
 	(void) flags;
